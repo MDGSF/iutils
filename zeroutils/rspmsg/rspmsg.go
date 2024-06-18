@@ -49,21 +49,25 @@ type RspMsg[T any] struct {
 	Data    T      `json:"data,omitempty"`
 }
 
-func NewRspMsg(lrsp, err any) RspMsg[any] {
+func NewRspMsg(lrsp, err any) (RspMsg[any], int) {
 	var resp RspMsg[any]
+	var HTTPCode int
 	switch data := err.(type) {
 	case *ErrMsg:
 		resp.Code = data.Code
 		resp.Message = data.Message
 		resp.Data = lrsp
+		HTTPCode = data.HTTPCode
 	case ErrMsg:
 		resp.Code = data.Code
 		resp.Message = data.Message
 		resp.Data = lrsp
+		HTTPCode = data.HTTPCode
 	default:
 		resp.Code = CodeSuccess
 		resp.Message = CodeSuccessMsg
 		resp.Data = lrsp
+		HTTPCode = http.StatusOK
 	}
-	return resp
+	return resp, HTTPCode
 }
