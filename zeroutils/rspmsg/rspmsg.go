@@ -13,10 +13,9 @@ const (
 )
 
 type ErrMsg struct {
-	HTTPCode int         `json:"httpCode"` // http.StatusOK
-	Code     string      `json:"code"`     // 0 - success, 1 - error
-	Message  string      `json:"message"`
-	Data     interface{} `json:"data,omitempty"`
+	HTTPCode int    `json:"httpCode"` // http.StatusOK
+	Code     string `json:"code"`     // 0 - success, 1 - error
+	Message  string `json:"message"`
 }
 
 func (c *ErrMsg) Error() string {
@@ -50,19 +49,21 @@ type RspMsg[T any] struct {
 	Data    T      `json:"data,omitempty"`
 }
 
-func RspMsgFromErrMsg(v any) RspMsg[any] {
+func NewRspMsg(lrsp, err any) RspMsg[any] {
 	var resp RspMsg[any]
-	switch data := v.(type) {
+	switch data := err.(type) {
 	case *ErrMsg:
 		resp.Code = data.Code
 		resp.Message = data.Message
+		resp.Data = lrsp
 	case ErrMsg:
 		resp.Code = data.Code
 		resp.Message = data.Message
+		resp.Data = lrsp
 	default:
 		resp.Code = CodeSuccess
 		resp.Message = CodeSuccessMsg
-		resp.Data = v
+		resp.Data = lrsp
 	}
 	return resp
 }
