@@ -35,7 +35,23 @@ func NewErr400(msg string) error {
 	}
 }
 
-func NewErr500(msg string) error {
+func NewErr401(msg string) error {
+	return &ErrMsg{
+		HTTPCode: http.StatusUnauthorized,
+		Code:     CodeError,
+		Message:  msg,
+	}
+}
+
+func NewErr403(msg string) error {
+	return &ErrMsg{
+		HTTPCode: http.StatusForbidden,
+		Code:     CodeError,
+		Message:  msg,
+	}
+}
+
+func NewErr500() error {
 	return &ErrMsg{
 		HTTPCode: http.StatusInternalServerError,
 		Code:     CodeError,
