@@ -3,6 +3,7 @@ package rspmsg
 import (
 	"fmt"
 	"net/http"
+	"reflect"
 )
 
 const (
@@ -68,21 +69,31 @@ type RspMsg[T any] struct {
 func NewRspMsg(lrsp, err any) (RspMsg[any], int) {
 	var resp RspMsg[any]
 	var HTTPCode int
+
+	lrspv := reflect.ValueOf(lrsp)
+	lrspIsNil := lrspv.Kind() == reflect.Ptr && lrspv.IsNil()
+
 	switch data := err.(type) {
 	case *ErrMsg:
 		resp.Code = data.Code
 		resp.Message = data.Message
-		resp.Data = lrsp
+		if !lrspIsNil {
+			resp.Data = lrsp
+		}
 		HTTPCode = data.HTTPCode
 	case ErrMsg:
 		resp.Code = data.Code
 		resp.Message = data.Message
-		resp.Data = lrsp
+		if !lrspIsNil {
+			resp.Data = lrsp
+		}
 		HTTPCode = data.HTTPCode
 	default:
 		resp.Code = CodeSuccess
 		resp.Message = CodeSuccessMsg
-		resp.Data = lrsp
+		if !lrspIsNil {
+			resp.Data = lrsp
+		}
 		HTTPCode = http.StatusOK
 	}
 	return resp, HTTPCode
