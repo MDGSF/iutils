@@ -24,3 +24,18 @@ func NewZapLog(traceID, spanID string) (*zap.Logger, *zap.SugaredLogger) {
 	sugar := logger.Sugar()
 	return logger, sugar
 }
+
+func NewZapConsole() *zap.SugaredLogger {
+	config := zap.NewProductionConfig()
+	config.EncoderConfig.EncodeTime = zapcore.ISO8601TimeEncoder
+
+	core := zapcore.NewCore(
+		zapcore.NewConsoleEncoder(config.EncoderConfig),
+		zapcore.Lock(os.Stdout),
+		zap.InfoLevel,
+	)
+
+	logger := zap.New(core, zap.AddCaller())
+	sugar := logger.Sugar()
+	return sugar
+}
