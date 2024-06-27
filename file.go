@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"io/fs"
 	"os"
 	"path/filepath"
 )
@@ -237,4 +238,28 @@ func CalcFileMD5(filename string) (string, error) {
 	hashString := hex.EncodeToString(hashBytes)
 
 	return hashString, nil
+}
+
+func IsTargetExt(info fs.DirEntry, ext string) bool {
+	if !info.Type().IsRegular() {
+		return false
+	}
+	return filepath.Ext(info.Name()) == ext
+}
+
+func FindFilesWithExt(dirPath, ext string) ([]string, error) {
+	var files []string
+	err := filepath.WalkDir(dirPath, func(path string, d fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		if IsTargetExt(d, ext) {
+			files = append(files, path)
+		}
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	return files, nil
 }
