@@ -330,4 +330,5 @@ func TestWriteJson(t *testing.T) {
 	if err != nil {
 		t.Errorf("WriteJson() failed, error: %v", err)
 	}
+	defer os.Remove("test.json")
 }
