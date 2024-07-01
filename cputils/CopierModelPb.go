@@ -46,6 +46,10 @@ func CopyModelPb(toValue interface{}, fromValue interface{}) error {
 						return nil, errors.New("src type not matching")
 					}
 
+					if !s.Valid {
+						return int64(0), nil
+					}
+
 					return s.Time.Unix(), nil
 				},
 			},
@@ -59,7 +63,7 @@ func CopyModelPb(toValue interface{}, fromValue interface{}) error {
 					}
 
 					if s == nil {
-						return 0, nil
+						return int64(0), nil
 					}
 
 					return s.Unix(), nil

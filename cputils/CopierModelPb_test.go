@@ -245,3 +245,64 @@ func TestCopyModelPb04(t *testing.T) {
 		t.Errorf("CopyModelPb() failed, expected %+v, got %+v", expected, toModel)
 	}
 }
+
+func TestCopyModelPb05(t *testing.T) {
+	current_time := time.Now()
+
+	type FromModel struct {
+		NullTime sql.NullTime
+	}
+
+	fromModel := FromModel{
+		NullTime: sql.NullTime{
+			Time:  current_time,
+			Valid: false,
+		},
+	}
+
+	type ToModel struct {
+		NullTime int64
+	}
+
+	expected := ToModel{
+		NullTime: 0,
+	}
+
+	var toModel ToModel
+	err := CopyModelPb(&toModel, fromModel)
+	if err != nil {
+		t.Errorf("CopyModelPb() failed, expected no error, got %v", err)
+	}
+
+	if !reflect.DeepEqual(toModel, expected) {
+		t.Errorf("CopyModelPb() failed, expected %+v, got %+v", expected, toModel)
+	}
+}
+
+func TestCopyModelPb06(t *testing.T) {
+	type FromModel struct {
+		TimePtr *time.Time
+	}
+
+	fromModel := FromModel{
+		TimePtr: nil,
+	}
+
+	type ToModel struct {
+		TimePtr int64
+	}
+
+	expected := ToModel{
+		TimePtr: 0,
+	}
+
+	var toModel ToModel
+	err := CopyModelPb(&toModel, fromModel)
+	if err != nil {
+		t.Errorf("CopyModelPb() failed, expected no error, got %v", err)
+	}
+
+	if !reflect.DeepEqual(toModel, expected) {
+		t.Errorf("CopyModelPb() failed, expected %+v, got %+v", expected, toModel)
+	}
+}
