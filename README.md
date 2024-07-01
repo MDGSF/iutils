@@ -10,5 +10,5 @@ go get -u github.com/MDGSF/iutils@v0.0.1
 ```sh
 go test ./...
 go test -coverprofile=coverage.out ./...
-go tool cover -html=coverage.out
+go tool cover -html=coverage.out -o coverage.html
 ```

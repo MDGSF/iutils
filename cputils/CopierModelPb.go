@@ -12,13 +12,15 @@ import (
 //
 // toValue: destination struct to copy values into.
 // fromValue: source struct to copy values from.
-func CopyModelPb(toValue interface{}, fromValue interface{}) {
+func CopyModelPb(toValue interface{}, fromValue interface{}) error {
 	const Int64 int64 = 0
+	const Int32 int32 = 0
 	var TimePtr *time.Time = nil
 	var StringPtr *string = nil
 	var Int64Ptr *int64 = nil
 	var Int32Ptr *int32 = nil
-	copier.CopyWithOption(toValue, fromValue, copier.Option{
+	var IntPtr *int = nil
+	return copier.CopyWithOption(toValue, fromValue, copier.Option{
 		IgnoreEmpty:   true,
 		CaseSensitive: false,
 		DeepCopy:      true,
@@ -97,9 +99,25 @@ func CopyModelPb(toValue interface{}, fromValue interface{}) {
 			},
 			{
 				SrcType: Int32Ptr,
-				DstType: copier.Int,
+				DstType: Int32,
 				Fn: func(src interface{}) (dst interface{}, err error) {
 					s, ok := src.(*int32)
+					if !ok {
+						return nil, errors.New("src type not matching")
+					}
+
+					if s == nil {
+						return int32(0), nil
+					}
+
+					return int32(*s), nil
+				},
+			},
+			{
+				SrcType: IntPtr,
+				DstType: copier.Int,
+				Fn: func(src interface{}) (dst interface{}, err error) {
+					s, ok := src.(*int)
 					if !ok {
 						return nil, errors.New("src type not matching")
 					}

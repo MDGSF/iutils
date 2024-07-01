@@ -2,8 +2,11 @@ package cputils
 
 import (
 	"database/sql"
+	"reflect"
 	"testing"
 	"time"
+
+	"github.com/MDGSF/iutils/toptr"
 )
 
 // TestCopyModelPb01 is a test function for CopyModelPb.
@@ -24,13 +27,19 @@ func TestCopyModelPb01(t *testing.T) {
 
 	fromValue := testStruct1{TimeField: time.Now()}
 	toValue := testStruct2{}
-	CopyModelPb(&toValue, &fromValue)
+	err := CopyModelPb(&toValue, &fromValue)
+	if err != nil {
+		t.Errorf("CopyModelPb failed: %v", err)
+	}
 
 	// Test case for time.Time to int64 conversion
 	t.Run("TimeField to IntField conversion", func(t *testing.T) {
 		fromValue := testStruct1{TimeField: time.Now()}
 		toValue := testStruct2{}
-		CopyModelPb(&toValue, &fromValue)
+		err := CopyModelPb(&toValue, &fromValue)
+		if err != nil {
+			t.Errorf("CopyModelPb failed: %v", err)
+		}
 
 		if toValue.TimeField != fromValue.TimeField.Unix() {
 			t.Errorf("Expected IntField to be %d, got %d", fromValue.TimeField.Unix(), toValue.TimeField)
@@ -42,7 +51,10 @@ func TestCopyModelPb01(t *testing.T) {
 		nullTime := sql.NullTime{Time: time.Now(), Valid: true}
 		fromValue := testStruct3{TimeField: nullTime}
 		toValue := testStruct2{}
-		CopyModelPb(&toValue, &fromValue)
+		err := CopyModelPb(&toValue, &fromValue)
+		if err != nil {
+			t.Errorf("CopyModelPb failed: %v", err)
+		}
 
 		if toValue.TimeField != nullTime.Time.Unix() {
 			t.Errorf("Expected IntField to be %d, got %d", nullTime.Time.Unix(), toValue.TimeField)
@@ -52,10 +64,10 @@ func TestCopyModelPb01(t *testing.T) {
 	// Add more test cases as needed
 }
 
-// TestCopierModelPb is a Go function that tests the CopyModelPb function by comparing the fields of two struct types.
+// TestCopyModelPb02 is a Go function that tests the CopyModelPb function by comparing the fields of two struct types.
 //
 // The function takes a testing.T parameter and does not return anything.
-func TestCopierModelPb(t *testing.T) {
+func TestCopyModelPb02(t *testing.T) {
 	type SFrom struct {
 		Id                  int
 		Id2                 int32
@@ -98,7 +110,10 @@ func TestCopierModelPb(t *testing.T) {
 
 	to := make([]TTo, 0)
 
-	CopyModelPb(&to, &from)
+	err := CopyModelPb(&to, &from)
+	if err != nil {
+		t.Errorf("CopyModelPb failed: %v", err)
+	}
 
 	onefrom := from[0]
 	oneto := to[0]
@@ -126,5 +141,107 @@ func TestCopierModelPb(t *testing.T) {
 	}
 	if onefrom.CreateAtTimeStamp != oneto.CollectionStartTime {
 		t.Errorf("onefrom.CreateAtTimeStamp = %v, oneto.CollectionStartTime = %v", onefrom.CreateAtTimeStamp, oneto.CollectionStartTime)
+	}
+}
+
+func TestCopyModelPb03(t *testing.T) {
+	type Model struct {
+		Time     time.Time
+		NullTime sql.NullTime
+		TimePtr  *time.Time
+		String   string
+		Int64    int64
+		Int32    int32
+	}
+
+	current_time := time.Now()
+
+	model := Model{
+		Time: time.Now(),
+		NullTime: sql.NullTime{
+			Time:  time.Now(),
+			Valid: true,
+		},
+		TimePtr: &current_time,
+		String:  "test",
+		Int64:   123456789,
+		Int32:   123,
+	}
+
+	expected := Model{
+		Time:     model.Time,
+		NullTime: model.NullTime,
+		TimePtr:  model.TimePtr,
+		String:   model.String,
+		Int64:    model.Int64,
+		Int32:    model.Int32,
+	}
+
+	var toValue Model
+	err := CopyModelPb(&toValue, model)
+	if err != nil {
+		t.Errorf("CopyModelPb failed: %v", err)
+	}
+
+	if !reflect.DeepEqual(toValue, expected) {
+		t.Errorf("CopyModelPb() failed, expected %+v, got %+v", expected, toValue)
+	}
+}
+
+func TestCopyModelPb04(t *testing.T) {
+	current_time := time.Now()
+	current_time_ts := current_time.Unix()
+
+	type FromModel struct {
+		Time     time.Time
+		NullTime sql.NullTime
+		TimePtr  *time.Time
+		String   *string
+		Int64    *int64
+		Int32    *int32
+		Int      *int
+	}
+
+	fromModel := FromModel{
+		Time: current_time,
+		NullTime: sql.NullTime{
+			Time:  current_time,
+			Valid: true,
+		},
+		TimePtr: &current_time,
+		String:  toptr.StringPtr("test"),
+		Int64:   toptr.Int64Ptr(123456789),
+		Int32:   toptr.Int32Ptr(123),
+		Int:     toptr.IntPtr(456),
+	}
+
+	type ToModel struct {
+		Time     int64
+		NullTime int64
+		TimePtr  int64
+		String   string
+		Int64    int64
+		Int32    int32
+		Int      int
+	}
+
+	expected := ToModel{
+		Time:     current_time_ts,
+		NullTime: current_time_ts,
+		TimePtr:  current_time_ts,
+		String:   "test",
+		Int64:    123456789,
+		Int32:    123,
+		Int:      456,
+	}
+
+	var toModel ToModel
+	err := CopyModelPb(&toModel, fromModel)
+	if err != nil {
+		t.Errorf("CopyModelPb() failed, expected no error, got %v", err)
+	}
+
+	if !reflect.DeepEqual(toModel, expected) {
+		t.Errorf("CopyModelPb() failed, expected %+v, got %+v", expected, toModel)
 	}
 }
