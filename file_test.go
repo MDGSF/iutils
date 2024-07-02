@@ -2,6 +2,7 @@ package iutils
 
 import (
 	"bytes"
+	"fmt"
 	"os"
 	"path/filepath"
 	"testing"
@@ -331,4 +332,48 @@ func TestWriteJson(t *testing.T) {
 		t.Errorf("WriteJson() failed, error: %v", err)
 	}
 	defer os.Remove("test.json")
+}
+
+func TestWriteFileParts(t *testing.T) {
+	// 定义测试用例
+	tests := []struct {
+		filename   string
+		fileoffset int64
+		data       []byte
+		wantErr    bool
+	}{
+		// 添加测试用例
+		{"testfile.txt", 0, []byte("hello"), false},
+		{"testfile.txt", 5, []byte("world"), false},
+		{"nonexistent_dir/testfile.txt", 0, []byte("hello"), false},
+		{"testfile.txt", -1, []byte("invalid offset"), true},
+	}
+
+	for _, tt := range tests {
+		t.Run(fmt.Sprintf("filename=%s,offset=%d,data=%s", tt.filename, tt.fileoffset, tt.data), func(t *testing.T) {
+			// 清理工作：删除已存在的文件或目录
+			defer os.RemoveAll(tt.filename)
+
+			err := WriteFileParts(tt.filename, tt.fileoffset, tt.data)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("WriteFileParts() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			if err != nil {
+				return
+			}
+
+			// 验证文件内容
+			content, err := ReadFileParts(tt.filename, tt.fileoffset, int64(len(tt.data)))
+			if err != nil {
+				t.Errorf("Failed to read file: %v", err)
+				return
+			}
+
+			if !tt.wantErr && string(content) != string(tt.data) {
+				t.Errorf("WriteFileParts() wrote incorrect content: got %v, want %v", string(content), string(tt.data))
+			}
+		})
+	}
 }
