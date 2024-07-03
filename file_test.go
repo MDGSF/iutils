@@ -377,3 +377,43 @@ func TestWriteFileParts(t *testing.T) {
 		})
 	}
 }
+
+func TestWriteScript(t *testing.T) {
+	// 定义测试用例
+	tests := []struct {
+		name     string
+		filename string
+		data     []byte
+		wantErr  bool
+	}{
+		{
+			name:     "TestValidFile",
+			filename: "./testdata/testscript.sh",
+			data:     []byte("#!/bin/bash\necho 'Hello, World!'\n"),
+			wantErr:  false,
+		},
+	}
+
+	// 遍历测试用例
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// 调用函数
+			err := WriteScript(tt.filename, tt.data)
+
+			// 检查错误
+			if (err != nil) != tt.wantErr {
+				t.Errorf("WriteScript() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			// 检查文件是否存在
+			if _, err := os.Stat(tt.filename); os.IsNotExist(err) {
+				t.Errorf("WriteScript() failed to create file %v", tt.filename)
+			}
+
+			// 清理文件和目录
+			defer os.Remove(tt.filename)
+			defer os.RemoveAll(filepath.Dir(tt.filename))
+		})
+	}
+}
