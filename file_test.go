@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"reflect"
+	"sort"
 	"testing"
 )
 
@@ -416,4 +418,49 @@ func TestWriteScript(t *testing.T) {
 			defer os.RemoveAll(filepath.Dir(tt.filename))
 		})
 	}
+}
+
+func TestFindFilesWithExt(t *testing.T) {
+	// Setup test directory and files
+	tempDir, err := os.MkdirTemp("", "test")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.RemoveAll(tempDir)
+
+	// Create test files with different extensions
+	testFiles := []struct {
+		name string
+		ext  string
+	}{
+		{"file1.txt", ".txt"},
+		{"file2.txt", ".txt"},
+		{"file3.log", ".log"},
+		{"file4.csv", ".csv"},
+	}
+
+	for _, tf := range testFiles {
+		filePath := tempDir + "/" + tf.name
+		file, err := os.Create(filePath)
+		if err != nil {
+			t.Fatal(err)
+		}
+		file.Close()
+	}
+
+	// Test the FindFilesWithExt function
+	expectedFiles := []string{tempDir + "/file1.txt", tempDir + "/file2.txt"}
+	foundFiles, err := FindFilesWithExt(tempDir, ".txt")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	sort.Slice(foundFiles, func(i, j int) bool {
+		return foundFiles[i] < foundFiles[j]
+	})
+
+	if !reflect.DeepEqual(foundFiles, expectedFiles) {
+		t.Errorf("FindFilesWithExt() returned unexpected files: got %v, want %v", foundFiles, expectedFiles)
+	}
+
 }
