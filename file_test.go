@@ -92,6 +92,14 @@ func TestReadFile(t *testing.T) {
 	}
 }
 
+func TestReadNonexistentFile(t *testing.T) {
+	filename := "testfile.txt"
+	_, err := ReadFile(filename)
+	if err == nil {
+		t.Fatalf("Failed to read nonexistent file")
+	}
+}
+
 func TestReadFileParts(t *testing.T) {
 
 	tempFile, err := os.CreateTemp("", "test")
@@ -135,6 +143,13 @@ func TestReadFileParts(t *testing.T) {
 			length:      int64(len(content)),
 			expected:    nil,
 			expectedErr: false,
+		},
+		{
+			filename:    tempFile.Name(),
+			fileoffset:  -1,
+			length:      1,
+			expected:    nil,
+			expectedErr: true,
 		},
 		{
 			filename:    "nonexistent.txt",
