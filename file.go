@@ -68,13 +68,9 @@ func WriteFile(filename string, data []byte) error {
 	defer file.Close() // 关闭文件，defer 语句确保在函数退出前执行
 
 	// 使用 Write 方法将 []byte 写入文件
-	n, err := file.Write(data)
+	_, err = file.Write(data)
 	if err != nil {
 		return err
-	}
-
-	if n != len(data) {
-		return fmt.Errorf("only wrote %d bytes out of %d", n, len(data))
 	}
 
 	return nil

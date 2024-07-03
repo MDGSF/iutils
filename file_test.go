@@ -180,7 +180,6 @@ func TestWriteFile(t *testing.T) {
 		data     []byte
 		wantErr  bool
 	}{
-
 		{"test.txt", []byte("Hello, World!"), false},
 		{"", []byte("Hello, World!"), true},
 	}
@@ -191,6 +190,7 @@ func TestWriteFile(t *testing.T) {
 			if (err != nil) != tt.wantErr {
 				t.Errorf("WriteFile() error = %v, wantErr %v", err, tt.wantErr)
 			}
+			defer os.RemoveAll(tt.filename)
 
 			if err == nil {
 				file, err := os.Open(tt.filename)
